@@ -8,6 +8,8 @@ from spotinfotk import spotysearch
 from search_songservtk import search_song
 from search_miditk import search2
 from getmidismp3 import getmidismp3, checkin
+from deezer_search import deez_search
+import datetime
 
 checkdb3 = checkin()
 root = tk.Tk(className='Sarabanda stricche e stricche')
@@ -31,10 +33,28 @@ labelbrano = tk.Label(root, textvariable=infobrano, anchor='c')
 labelbrano.place(x=300, y=290)
 infobrano.set("CLICCA SU CASUALI PER INIZIARE!")
 
+file1 = open(str(datetime.datetime.now().date()) +".txt", "a+")
+file1 = open(str(datetime.datetime.now().date()) +".txt", "r+")
+a = 0
+lineList = file1.readlines()
+if lineList == []:
+    file1.write("SARABANDA!\n")
+    file1.write("Gioco del: " + str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))+str("\n"))
+    file1.close()
+else:
+    if ")" in str(lineList):
+        a = lineList[-1]
+        a = a.split("| ", 1)[1]
+        a = int(a.split(")", 1)[0])
+
 if checkdb3:
     var1 = tk.IntVar()
     c1 = tk.Checkbutton(root, text='Database 3', variable=var1, onvalue=1, offvalue=0)
-    c1.place(x=425, y=250)
+    c1.place(x=425, y=240)
+
+var2 = tk.IntVar()
+c2 = tk.Checkbutton(root, text='No Midi', variable=var2, onvalue=1, offvalue=0)
+c2.place(x=425, y=260)
 
 def updatepic(picurl):
     image1 = Image.open(requests.get(picurl, stream=True).raw)
@@ -47,7 +67,7 @@ def updatepic(picurl):
 updatepic("https://www.caffeinamagazine.it/wp-content/uploads/2016/10/12papiqua.png")
 
 def PlayMusic():
-    global p, url
+    global p, url, a
     try:
         ind = int((tree.item(tree.focus())['values'][0]) - 1)
         url2 = index[ind]
@@ -63,8 +83,21 @@ def PlayMusic():
                     pass
             p = vlc.MediaPlayer(url)
             p.play()
-            final_album, final_single, forced = spotysearch(titles[ind], artists[ind])
+            artist_search = artists[ind]
+            title_search = titles[ind]
+            word_to_replace = ['Feat.', 'ft.', "(", ")"]
+            for word in word_to_replace:
+                title_search = title_search.replace(word, "")
+                artist_search = artist_search.replace(word, "")
+            final_album, final_single, forced = spotysearch(title_search, artist_search)
             # TIPO - NOME BRANO - ARTISTA - NOME ALBUM - ANNO - IMAGE
+
+            a = a + 1
+            file1 = open(str(datetime.datetime.now().date()) + ".txt", "a")
+            file1.write("\n" + str(datetime.datetime.now().strftime("%H:%M")) + " | " + str(a) + ") " + str(
+                artists[ind] + " - " + str(titles[ind])))
+            file1.close()
+
             if len(final_album) > 0 and len(final_single) > 0:
                 infobrano.set("Artista: " + final_album[2] +
                               "\nTitolo: " + final_album[1] +
@@ -82,7 +115,7 @@ def PlayMusic():
                               "\nSingle/EP: " + final_single[3] + " (" + final_single[4] + ")")
                 updatepic(final_single[5])
             elif len(forced) > 0:
-                infobrano.set("RISULTATO FORZATO"+"\nArtista: " + forced[2] +
+                infobrano.set("Risultato Forzato!"+"\nArtista: " + forced[2] +
                               "\nTitolo: " + forced[1] +
                               "\nAlbum: " + forced[3] + " (" + forced[4] + ")")
                 updatepic(forced[5])
@@ -119,16 +152,19 @@ def Search():
     artists = []
     titles = []
     extras = []
-    index, artists, titles, extras = search_song(searchstring.get())
-    try:
-        check3 = var1.get()
-    except:
-        check3 = 0
-    index2, artists2, titles2, extras2 = search2(searchstring.get(), check3)
-    index = index+index2
-    artists = artists+artists2
-    titles = titles + titles2
-    extras = extras + extras2
+    if var2.get() == 0:
+        index, artists, titles, extras = search_song(searchstring.get())
+        try:
+            check3 = var1.get()
+        except:
+            check3 = 0
+        index2, artists2, titles2, extras2 = search2(searchstring.get(), check3)
+        index = index+index2
+        artists = artists+artists2
+        titles = titles + titles2
+        extras = extras + extras2
+    else:
+        index, artists, titles, extras = deez_search(searchstring.get())
     for i in range(len(index)):
         tree.insert("", tk.END, values=[i+1, str(titles[i] + extras[i]), artists[i]])
 
