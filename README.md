@@ -1,6 +1,7 @@
-# Sarabanda
+# SaraPy
 
-Software per riprodurre delle brevi versioni midi (o mp3) di alcune canzoni
+Software per giocare con gli amici ad una versione simile a Sarabanda o Name that tune!
+Riproduce delle brevi versioni midi (o mp3) di alcune canzoni.
 
 Il software richiede una versione di vlc installata
 
